@@ -6,6 +6,7 @@ RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
         zip \
+        supervisor \
     && docker-php-ext-configure zip --with-libzip \
     && docker-php-ext-install zip bcmath
 
@@ -22,10 +23,12 @@ RUN apt-get install -y \
     git clone https://github.com/apisearch-io/search-server.git apisearch && \
     cd apisearch && \
     curl -sS https://getcomposer.org/installer | php && \
-    php composer.phar install
+    mv composer.phar /usr/bin/composer && \
+    composer install
 
+VOLUME /var/log/supervisor
+
+COPY supervisor-search-server.conf /etc/supervisor/conf.d/search-server.conf
 COPY docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-
-EXPOSE 8100

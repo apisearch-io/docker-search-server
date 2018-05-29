@@ -1,0 +1,50 @@
+version: '3.3'
+
+services:
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+        container_name: apisearch_elasticsearch
+        environment:
+            - cluster.name=apisearch
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - action.auto_create_index=-apisearch*,+*
+            - node.max_local_storage_nodes=10
+        volumes:
+            - esdata:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+
+    redis:
+        image: redis:4-alpine
+        container_name: apisearch_redis
+
+    haproxy:
+        build: ${PWD}/docker/haproxy
+        container_name: apisearch_haproxy
+        ports:
+            - ${PORT}:8100
+        links:
+            - apisearch
+
+    apisearch:
+        build: ${PWD}/docker/search-server
+        container_name: apisearch_server
+        depends_on:
+            - elasticsearch
+            - redis
+        ports:
+            - 8200:8200
+            - 8201:8201
+            - 8202:8202
+            - 8203:8203
+            - 8204:8204
+        volumes:
+            - ${PWD}/supervisor:/var/log/supervisor
+        links:
+            - redis
+
+volumes:
+    esdata:
+        driver: local
