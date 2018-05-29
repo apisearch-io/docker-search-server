@@ -21,15 +21,15 @@ services:
         container_name: apisearch_redis
 
     haproxy:
-        build: ${PWD}/docker/haproxy
+        build: ${PWD}/haproxy
         container_name: apisearch_haproxy
         ports:
-            - ${PORT}:8100
+            - 8100:8100
         links:
             - apisearch
 
     apisearch:
-        build: ${PWD}/docker/search-server
+        build: ${PWD}/search-server
         container_name: apisearch_server
         depends_on:
             - elasticsearch
