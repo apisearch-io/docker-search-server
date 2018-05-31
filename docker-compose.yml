@@ -24,7 +24,7 @@ services:
         build: ${PWD}/haproxy
         container_name: apisearch_haproxy
         ports:
-            - 8100:8100
+            - ${APISEARCH_PORT}:8100
         links:
             - apisearch
 
