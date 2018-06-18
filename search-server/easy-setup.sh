@@ -20,4 +20,4 @@ exec 6<&-
 
 cd /var/www/apisearch && \
     php bin/console apisearch-server:create-index 96a53eaf e7185a86 && \
-    php bin/console apisearch-server:add-token 96a53eaf 58173963-e5b1-4f50-efc3-43d95ece8a5a
+    php bin/console apisearch-server:generate-basic-tokens 96a53eaf

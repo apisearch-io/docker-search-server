@@ -9,7 +9,7 @@ services:
             - http.host=0.0.0.0
             - transport.host=0.0.0.0
             - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-            - action.auto_create_index=-apisearch*,+*
+            - action.auto_create_index=+apisearch_plugin_*,+apisearch_log_*,+apisearch_event_*,-apisearch*,+*
             - node.max_local_storage_nodes=10
         volumes:
             - esdata:/usr/share/elasticsearch/data
@@ -19,9 +19,10 @@ services:
     redis:
         image: redis:4-alpine
         container_name: apisearch_redis
+        command: ["redis-server", "--appendonly", "yes"]
 
     haproxy:
-        build: ${PWD}/haproxy
+        build: ./haproxy
         container_name: apisearch_haproxy
         ports:
             - ${APISEARCH_PORT}:8100
@@ -29,7 +30,7 @@ services:
             - apisearch
 
     apisearch:
-        build: ${PWD}/search-server
+        build: ./search-server
         container_name: apisearch_server
         depends_on:
             - elasticsearch
@@ -41,7 +42,7 @@ services:
             - 8203:8203
             - 8204:8204
         volumes:
-            - ${PWD}/supervisor:/var/log/supervisor
+            - ./supervisor:/var/log/supervisor
         links:
             - redis
 

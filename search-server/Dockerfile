@@ -24,11 +24,14 @@ RUN apt-get install -y \
     cd apisearch && \
     curl -sS https://getcomposer.org/installer | php && \
     mv composer.phar /usr/bin/composer && \
-    composer install
+    composer install && \
+    composer dump-autoload
 
 VOLUME /var/log/supervisor
 
 COPY supervisor-search-server.conf /etc/supervisor/conf.d/search-server.conf
 COPY docker-entrypoint.sh /
+COPY easy-setup.sh /
+COPY .env /var/www/apisearch
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
