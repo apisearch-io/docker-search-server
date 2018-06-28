@@ -19,5 +19,7 @@ exec 6>&-
 exec 6<&-
 
 cd /var/www/apisearch && \
-    php bin/console apisearch-server:create-index 96a53eaf e7185a86 && \
-    php bin/console apisearch-server:generate-basic-tokens 96a53eaf
+    appId=$(< /dev/urandom tr -dc a-z0-9 | head -c${1:-12}) && \
+    indexId=$(< /dev/urandom tr -dc a-z0-9 | head -c${1:-12}) && \
+    php bin/console apisearch-server:create-index $appId $indexId && \
+    php bin/console apisearch-server:generate-basic-tokens $indexId

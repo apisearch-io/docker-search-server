@@ -5,6 +5,7 @@ services:
         image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
         container_name: apisearch_elasticsearch
         environment:
+            - discovery.type=single-node
             - cluster.name=apisearch
             - http.host=0.0.0.0
             - transport.host=0.0.0.0
