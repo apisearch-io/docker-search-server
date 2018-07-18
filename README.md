@@ -1,4 +1,4 @@
-# Apisearch - Docker Server
+# Apisearch - Docker Server Infrastructure
 
 This library is part of the Apisearch project.
 
@@ -8,8 +8,7 @@ This library is part of the Apisearch project.
 
 > Before running the docker-compose command, make sure you have copied from
 > `.env-dist` to `.env` and updated the file with your own security (and
-> private) tokens. Remember to copy this file inside the search-server folder as
-> well.
+> private) tokens.
 
 [![Join the chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/apisearch_io/general)
 

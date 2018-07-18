@@ -22,30 +22,63 @@ services:
         container_name: apisearch_redis
         command: ["redis-server", "--appendonly", "yes"]
 
+    apisearch_server_0:
+        image: apisearchio/search-server:alpha
+        container_name: apisearch_server_0
+        entrypoint: /server-entrypoint.sh
+        env_file:
+            - ./.env
+        depends_on:
+            - elasticsearch
+            - redis
+        links:
+            - redis
+
+    apisearch_server_1:
+        image: apisearchio/search-server:alpha
+        container_name: apisearch_server_1
+        entrypoint: /server-entrypoint.sh
+        env_file:
+            - ./.env
+        depends_on:
+            - elasticsearch
+            - redis
+        links:
+            - redis
+
+    apisearch_server_2:
+        image: apisearchio/search-server:alpha
+        container_name: apisearch_server_2
+        entrypoint: /server-entrypoint.sh
+        env_file:
+            - ./.env
+        depends_on:
+            - elasticsearch
+            - redis
+        links:
+            - redis
+
+    apisearch_command_worker:
+        image: apisearchio/search-server:alpha
+        container_name: apisearch_command_worker
+        entrypoint: /command-worker-entrypoint.sh
+        env_file:
+            - ./.env
+        depends_on:
+            - elasticsearch
+            - redis
+        links:
+            - redis
+
     haproxy:
         build: ./haproxy
         container_name: apisearch_haproxy
         ports:
             - ${APISEARCH_PORT}:8100
         links:
-            - apisearch
-
-    apisearch:
-        build: ./search-server
-        container_name: apisearch_server
-        depends_on:
-            - elasticsearch
-            - redis
-        ports:
-            - 8200:8200
-            - 8201:8201
-            - 8202:8202
-            - 8203:8203
-            - 8204:8204
-        volumes:
-            - ./supervisor:/var/log/supervisor
-        links:
-            - redis
+            - apisearch_server_0
+            - apisearch_server_1
+            - apisearch_server_2
 
 volumes:
     esdata:
