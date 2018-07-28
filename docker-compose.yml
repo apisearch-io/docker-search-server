@@ -23,7 +23,7 @@ services:
         command: ["redis-server", "--appendonly", "yes"]
 
     apisearch_server_0:
-        image: apisearchio/search-server:alpha
+        image: apisearchio/search-server:latest
         container_name: apisearch_server_0
         entrypoint: /server-entrypoint.sh
         env_file:
@@ -35,7 +35,7 @@ services:
             - redis
 
     apisearch_server_1:
-        image: apisearchio/search-server:alpha
+        image: apisearchio/search-server:latest
         container_name: apisearch_server_1
         entrypoint: /server-entrypoint.sh
         env_file:
@@ -47,7 +47,7 @@ services:
             - redis
 
     apisearch_server_2:
-        image: apisearchio/search-server:alpha
+        image: apisearchio/search-server:latest
         container_name: apisearch_server_2
         entrypoint: /server-entrypoint.sh
         env_file:
@@ -59,7 +59,7 @@ services:
             - redis
 
     apisearch_command_worker:
-        image: apisearchio/search-server:alpha
+        image: apisearchio/search-server:latest
         container_name: apisearch_command_worker
         entrypoint: /command-worker-entrypoint.sh
         env_file:
