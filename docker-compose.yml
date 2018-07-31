@@ -21,6 +21,8 @@ services:
         image: redis:4-alpine
         container_name: apisearch_redis
         command: ["redis-server", "--appendonly", "yes"]
+        volumes:
+            - redisdata:/data
 
     apisearch_server_0:
         image: apisearchio/search-server:alpha
@@ -82,4 +84,6 @@ services:
 
 volumes:
     esdata:
+        driver: local
+    redisdata:
         driver: local
