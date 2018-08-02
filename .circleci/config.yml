@@ -1,0 +1,39 @@
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
+version: 2
+general:
+    branches:
+        ignore:
+            - docker-image/*
+jobs:
+
+    build:
+        docker:
+            - image: docker:stable
+        working_directory: ~/
+        steps:
+            - checkout
+            - setup_remote_docker:
+                docker_layer_caching: true
+
+            - run:
+                name: Install dependencies
+                command: |
+                    apk add --update --no-cache py2-pip==9.0.1-r1
+                    pip install docker-compose
+
+            - run:
+                name: Build and run Apisearch stack
+                command: |
+                    cp .circleci/.env.test .env
+                    docker-compose build
+                    docker-compose up -d
+                    docker ps
+
+            - run:
+                name: Run tests
+                command: |
+                    docker exec -i -t $(docker ps -qf "name=apisearch_server_0") /var/www/apisearch/scripts/run-tests
+
