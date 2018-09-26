@@ -21,7 +21,7 @@ jobs:
             - run:
                 name: Install dependencies
                 command: |
-                    apk add --update --no-cache py2-pip==9.0.1-r1
+                    apk add --update --no-cache py2-pip
                     pip install docker-compose
 
             - run:
