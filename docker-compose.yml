@@ -3,7 +3,7 @@ version: '3.3'
 services:
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
-        container_name: apisearch_elasticsearch
+        container_name: apisearch.elasticsearch
         environment:
             - discovery.type=single-node
             - cluster.name=apisearch
@@ -17,16 +17,37 @@ services:
         ports:
             - 9200:9200
 
+    logstash:
+        image: docker.elastic.co/logstash/logstash:6.2.4
+        container_name: apisearch.logstash
+        volumes:
+            - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+            - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+            - ./logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+        links:
+            - elasticsearch
+            - redis
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:6.2.4
+        container_name: apisearch.kibana
+        environment:
+            ELASTICSEARCH_URL: http://apisearch.elasticsearch:9200
+        links:
+            - elasticsearch
+        ports:
+            - 5601:5601
+
     redis:
         image: redis:4-alpine
-        container_name: apisearch_redis
+        container_name: apisearch.redis
         command: ["redis-server", "--appendonly", "yes"]
         volumes:
             - redisdata:/data
 
     apisearch_server_0:
-        image: apisearchio/search-server:latest
-        container_name: apisearch_server_0
+        image: apisearchio/search-server:new-relic
+        container_name: apisearch.server_0
         entrypoint: /server-entrypoint.sh
         env_file:
             - ./.env
@@ -38,8 +59,8 @@ services:
             - redis
 
     apisearch_server_1:
-        image: apisearchio/search-server:latest
-        container_name: apisearch_server_1
+        image: apisearchio/search-server:new-relic
+        container_name: apisearch.server_1
         entrypoint: /server-entrypoint.sh
         env_file:
             - ./.env
@@ -51,8 +72,8 @@ services:
             - redis
 
     apisearch_server_2:
-        image: apisearchio/search-server:latest
-        container_name: apisearch_server_2
+        image: apisearchio/search-server:new-relic
+        container_name: apisearch.server_2
         entrypoint: /server-entrypoint.sh
         env_file:
             - ./.env
@@ -63,10 +84,23 @@ services:
             - elasticsearch
             - redis
 
-    apisearch_command_worker:
-        image: apisearchio/search-server:latest
-        container_name: apisearch_command_worker
-        entrypoint: /command-worker-entrypoint.sh
+    apisearch_commands_consumer:
+        image: apisearchio/search-server:new-relic
+        container_name: apisearch.commands_consumer
+        entrypoint: /commands-consumer-entrypoint.sh
+        env_file:
+            - ./.env
+        depends_on:
+            - elasticsearch
+            - redis
+        links:
+            - elasticsearch
+            - redis
+
+    apisearch_domain_events_consumer:
+        image: apisearchio/search-server:new-relic
+        container_name: apisearch.domain_events_consumer
+        entrypoint: /domain-events-consumer-entrypoint.sh
         env_file:
             - ./.env
         depends_on:
@@ -78,7 +112,7 @@ services:
 
     haproxy:
         build: ./haproxy
-        container_name: apisearch_haproxy
+        container_name: apisearch.haproxy
         ports:
             - ${APISEARCH_PORT}:8100
         links:
@@ -88,6 +122,8 @@ services:
 
 volumes:
     esdata:
+        driver: local
+    kibanadata:
         driver: local
     redisdata:
         driver: local
