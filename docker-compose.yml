@@ -10,7 +10,7 @@ services:
             - http.host=0.0.0.0
             - transport.host=0.0.0.0
             - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-            - action.auto_create_index=+apisearch_item_*_*_plugin_*,+apisearch_log_*,+apisearch_event_*,-apisearch*,+*
+            - action.auto_create_index=+apisearch_item_*_*-plugin-*,+apisearch_log_*,+apisearch_event_*,-apisearch*,+*
             - node.max_local_storage_nodes=10
         volumes:
             - esdata:/usr/share/elasticsearch/data
