@@ -10,7 +10,7 @@ This library is part of the Apisearch project.
 > `.env-dist` to `.env` and updated the file with your own security (and
 > private) tokens.
 
-[![CircleCI](https://circleci.com/gh/apisearch-io/basic-infrastructure.svg?style=svg)](https://circleci.com/gh/apisearch-io/basic-infrastructure)
+[![CircleCI](https://circleci.com/gh/apisearch-io/search-server.svg?style=svg)](https://circleci.com/gh/apisearch-io/search-server)
 [![Join the chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/apisearch_io/general)
 
 Apisearch is an open source search engine fully based on open source third party
