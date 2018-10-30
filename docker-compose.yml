@@ -48,7 +48,7 @@ services:
     apisearch_server_0:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.server_0
-        entrypoint: /server-entrypoint.sh
+        command: ["sh", /server-pm-entrypoint.sh]
         env_file:
             - ./.env
         depends_on:
@@ -61,7 +61,7 @@ services:
     apisearch_server_1:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.server_1
-        entrypoint: /server-entrypoint.sh
+        command: ["sh", /server-pm-entrypoint.sh]
         env_file:
             - ./.env
         depends_on:
@@ -74,7 +74,7 @@ services:
     apisearch_server_2:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.server_2
-        entrypoint: /server-entrypoint.sh
+        command: ["sh", /server-pm-entrypoint.sh]
         env_file:
             - ./.env
         depends_on:
@@ -87,7 +87,7 @@ services:
     apisearch_commands_consumer:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.commands_consumer
-        entrypoint: /commands-consumer-entrypoint.sh
+        command: ["sh", /commands-consumer-entrypoint.sh]
         env_file:
             - ./.env
         depends_on:
@@ -100,7 +100,7 @@ services:
     apisearch_domain_events_consumer:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.domain_events_consumer
-        entrypoint: /domain-events-consumer-entrypoint.sh
+        command: ["sh", /domain-events-consumer-entrypoint.sh]
         env_file:
             - ./.env
         depends_on:
