@@ -1,9 +1,10 @@
-version: '3.3'
+version: '3.5'
 
 services:
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
         container_name: apisearch.elasticsearch
+        networks: [apisearch]
         environment:
             - discovery.type=single-node
             - cluster.name=apisearch
@@ -20,105 +21,60 @@ services:
     logstash:
         image: docker.elastic.co/logstash/logstash:6.2.4
         container_name: apisearch.logstash
+        networks: [apisearch]
         volumes:
             - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
             - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
             - ./logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
-        links:
-            - elasticsearch
-            - redis
 
     kibana:
         image: docker.elastic.co/kibana/kibana:6.2.4
         container_name: apisearch.kibana
+        networks: [apisearch]
         environment:
             ELASTICSEARCH_URL: http://apisearch.elasticsearch:9200
-        links:
-            - elasticsearch
         ports:
             - 5601:5601
 
     redis:
         image: redis:4-alpine
         container_name: apisearch.redis
-        command: ["redis-server", "--appendonly", "yes"]
+        networks: [apisearch]
         volumes:
             - redisdata:/data
 
-    apisearch_server_0:
+    apisearch_server:
         image: apisearchio/search-server:new-relic
-        container_name: apisearch.server_0
+        container_name: apisearch.server
+        networks: [apisearch]
         command: ["sh", /server-pm-entrypoint.sh]
+        depends_on:
+            - redis
+        ports:
+            - ${APISEARCH_PORT}:8200
         env_file:
             - ./.env
-        depends_on:
-            - elasticsearch
-            - redis
-        links:
-            - elasticsearch
-            - redis
-
-    apisearch_server_1:
-        image: apisearchio/search-server:new-relic
-        container_name: apisearch.server_1
-        command: ["sh", /server-pm-entrypoint.sh]
-        env_file:
-            - ./.env
-        depends_on:
-            - elasticsearch
-            - redis
-        links:
-            - elasticsearch
-            - redis
-
-    apisearch_server_2:
-        image: apisearchio/search-server:new-relic
-        container_name: apisearch.server_2
-        command: ["sh", /server-pm-entrypoint.sh]
-        env_file:
-            - ./.env
-        depends_on:
-            - elasticsearch
-            - redis
-        links:
-            - elasticsearch
-            - redis
 
     apisearch_commands_consumer:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.commands_consumer
-        command: ["sh", /commands-consumer-entrypoint.sh]
+        networks: [apisearch]
+        command: ["sh", "/commands-consumer-entrypoint.sh"]
+        networks: [apisearch]
+        depends_on:
+            - redis
         env_file:
             - ./.env
-        depends_on:
-            - elasticsearch
-            - redis
-        links:
-            - elasticsearch
-            - redis
 
     apisearch_domain_events_consumer:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.domain_events_consumer
-        command: ["sh", /domain-events-consumer-entrypoint.sh]
+        networks: [apisearch]
+        command: ["sh", "/domain-events-consumer-entrypoint.sh"]
+        depends_on:
+            - redis
         env_file:
             - ./.env
-        depends_on:
-            - elasticsearch
-            - redis
-        links:
-            - elasticsearch
-            - redis
-
-    haproxy:
-        build: ./haproxy
-        container_name: apisearch.haproxy
-        ports:
-            - ${APISEARCH_PORT}:8100
-        links:
-            - apisearch_server_0
-            - apisearch_server_1
-            - apisearch_server_2
 
 volumes:
     esdata:
@@ -127,3 +83,7 @@ volumes:
         driver: local
     redisdata:
         driver: local
+
+networks:
+    apisearch:
+        name: apisearch
