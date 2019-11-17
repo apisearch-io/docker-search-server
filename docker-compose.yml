@@ -47,7 +47,7 @@ services:
         image: apisearchio/search-server:new-relic
         container_name: apisearch.server
         networks: [apisearch]
-        command: ["sh", /server-pm-entrypoint.sh]
+        command: ["sh", /server-entrypoint.sh]
         depends_on:
             - redis
         ports:
