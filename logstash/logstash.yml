@@ -1,5 +1,5 @@
 http.host: "0.0.0.0"
 path.config: /usr/share/logstash/pipeline/logstash.conf
-xpack.monitoring.elasticsearch.url: http://apisearch.elasticsearch:9200
+xpack.monitoring.elasticsearch.hosts: http://apisearch.elasticsearch:9200
 xpack.monitoring.elasticsearch.username:
 xpack.monitoring.elasticsearch.password:
