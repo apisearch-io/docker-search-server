@@ -1,0 +1,45 @@
+
+### CREATE APP + INDEX
+PUT http://localhost:8100/v1/marvel/indices/comics
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+Content-Type: application/json
+
+{
+    "language": "en",
+    "store_searchable_metadata": true,
+    "shards": 5,
+    "replicas": 2
+}
+
+### DELETE INDEX
+DELETE http://localhost:8100/v1/marvel/indices/comics
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+
+### GET TOKENS
+GET http://localhost:8100/v1/marvel/tokens
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+
+### MAKE A QUERY
+GET http://localhost:8100/v1/marvel/indices/comics?q=ironman
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+
+### CREATE A TEMPORARY TOKEN
+PUT http://localhost:8100/v1/marvel/tokens/temporary-token
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+Content-Type: application/json
+
+{
+    "app_uuid": {
+        "id": "marvel"
+    }
+}
+
+### DELETE THE TOKEN
+DELETE http://localhost:8100/v1/marvel/tokens/temporary-token
+Apisearch-token-id: 0e4d75ba-c640-44c1-a745-06ee51db4e93
+
+### MAKE A QUERY WITH THIS TOKEN
+GET http://localhost:8100/v1/marvel/indices/comics?q=ironman
+Apisearch-token-id: temporary-token
+
+###

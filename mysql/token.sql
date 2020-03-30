@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS token (token_uuid varchar(255) PRIMARY KEY, app_uuid varchar(255) NOT NULL, content varchar(255) NOT NULL);

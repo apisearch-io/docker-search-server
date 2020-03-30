@@ -1,6 +1,23 @@
 version: '3.5'
 
+volumes:
+    esdata:
+        driver: local
+    kibanadata:
+        driver: local
+    redisdata:
+        driver: local
+    mysqldata:
+        driver: local
+
+networks:
+    apisearch:
+
 services:
+
+    #
+    # ELK
+    #
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
         container_name: apisearch.elasticsearch
@@ -16,7 +33,7 @@ services:
         volumes:
             - esdata:/usr/share/elasticsearch/data
         ports:
-            - 9200:9200
+            - "9200:9200"
 
     logstash:
         image: docker.elastic.co/logstash/logstash:7.4.2
@@ -34,7 +51,17 @@ services:
         environment:
             ELASTICSEARCH_URL: http://apisearch.elasticsearch:9200
         ports:
-            - 5601:5601
+            - "5601:5601"
+
+    #
+    # Persistence infrastructure
+    #
+    amqp:
+        image: "rabbitmq:3-management"
+        container_name: apisearch.amqp
+        networks: [apisearch]
+        ports:
+            - "15672:15672"
 
     redis:
         image: redis:4-alpine
@@ -43,46 +70,58 @@ services:
         volumes:
             - redisdata:/data
 
-    apisearch_server:
-        image: apisearchio/search-server:new-relic
-        container_name: apisearch.server
+    mysql:
+        image: mysql:5
+        container_name: apisearch.mysql
         networks: [apisearch]
-        command: ["sh", /server-entrypoint.sh]
-        depends_on:
-            - redis
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: apisearch
         ports:
-            - ${APISEARCH_PORT}:8200
-        env_file:
-            - ./.env
+            - "3306:3306"
+        volumes:
+            - mysqldata:/var/lib/mysql
+            - ./mysql/token.sql:/docker-entrypoint-initdb.d/token.sql
 
-    apisearch_commands_consumer:
-        image: apisearchio/search-server:new-relic
-        container_name: apisearch.commands_consumer
-        command: ["sh", "/commands-consumer-entrypoint.sh"]
+
+    #
+    # Apisearch containers
+    #
+    tiny_balancer:
+        image: "driftphp/tiny-balancer"
+        ports:
+            - "${APISEARCH_SERVER_PORT}:8000"
         networks: [apisearch]
-        depends_on:
-            - redis
-        env_file:
-            - ./.env
+        entrypoint: ["php", "balancer", "8000", "apisearch.server_1:8000", "apisearch.server_2:8000", "apisearch.server_3:8000"]
 
-    apisearch_domain_events_consumer:
-        image: apisearchio/search-server:new-relic
-        container_name: apisearch.domain_events_consumer
+    server_1:
+        image: apisearchio/search-server:latest
+        container_name: apisearch.server_1
         networks: [apisearch]
-        command: ["sh", "/domain-events-consumer-entrypoint.sh"]
-        depends_on:
-            - redis
+        command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
+        volumes:
+            - ./wait/wait-and-run.sh:/wait-and-run.sh
         env_file:
             - ./.env
 
-volumes:
-    esdata:
-        driver: local
-    kibanadata:
-        driver: local
-    redisdata:
-        driver: local
+    server_2:
+        image: apisearchio/search-server:latest
+        container_name: apisearch.server_2
+        networks: [apisearch]
+        command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
+        volumes:
+            - ./wait/wait-and-run.sh:/wait-and-run.sh
+        env_file:
+            - ./.env
 
-networks:
-    apisearch:
+    server_3:
+        image: apisearchio/search-server:latest
+        container_name: apisearch.server_3
+        networks: [apisearch]
+        command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
+        volumes:
+            - ./wait/wait-and-run.sh:/wait-and-run.sh
+        env_file:
+            - ./.env
+
 
