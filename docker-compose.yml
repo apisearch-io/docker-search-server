@@ -1,17 +1,15 @@
 version: '3.5'
 
 volumes:
-    esdata:
+    esdata_infra:
         driver: local
-    kibanadata:
+    redisdata_infra:
         driver: local
-    redisdata:
-        driver: local
-    mysqldata:
+    mysqldata_infra:
         driver: local
 
 networks:
-    apisearch:
+    apisearch_infra:
 
 services:
 
@@ -21,24 +19,20 @@ services:
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
         container_name: apisearch.elasticsearch
-        networks: [apisearch]
+        networks: [apisearch_infra]
         environment:
-            - discovery.type=single-node
-            - cluster.name=apisearch
-            - http.host=0.0.0.0
-            - transport.host=0.0.0.0
-            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+            - "discovery.type=single-node"
             - "action.auto_create_index=-apisearch*,+*"
-            - node.max_local_storage_nodes=10
         volumes:
-            - esdata:/usr/share/elasticsearch/data
+            - esdata_infra:/usr/share/elasticsearch/data
         ports:
             - "9200:9200"
 
     logstash:
         image: docker.elastic.co/logstash/logstash:7.4.2
         container_name: apisearch.logstash
-        networks: [apisearch]
+        networks: [apisearch_infra]
         volumes:
             - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
             - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
@@ -47,7 +41,7 @@ services:
     kibana:
         image: docker.elastic.co/kibana/kibana:7.4.2
         container_name: apisearch.kibana
-        networks: [apisearch]
+        networks: [apisearch_infra]
         environment:
             ELASTICSEARCH_URL: http://apisearch.elasticsearch:9200
         ports:
@@ -59,30 +53,32 @@ services:
     amqp:
         image: "rabbitmq:3-management"
         container_name: apisearch.amqp
-        networks: [apisearch]
+        networks: [apisearch_infra]
         ports:
             - "15672:15672"
 
     redis:
         image: redis:4-alpine
         container_name: apisearch.redis
-        networks: [apisearch]
+        networks: [apisearch_infra]
         volumes:
-            - redisdata:/data
+            - redisdata_infra:/data
 
     mysql:
         image: mysql:5
         container_name: apisearch.mysql
-        networks: [apisearch]
+        networks: [apisearch_infra]
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: apisearch
         ports:
             - "3306:3306"
         volumes:
-            - mysqldata:/var/lib/mysql
-            - ./mysql/token.sql:/docker-entrypoint-initdb.d/token.sql
-
+            - mysqldata_infra:/var/lib/mysql
+            - ./mysql/tokens.sql:/docker-entrypoint-initdb.d/tokens.sql
+            - ./mysql/metadata.sql:/docker-entrypoint-initdb.d/metadata.sql
+            - ./mysql/usage_lines.sql:/docker-entrypoint-initdb.d/usage_lines.sql
+            - ./mysql/index_configs.sql:/docker-entrypoint-initdb.d/index_configs.sql
 
     #
     # Apisearch containers
@@ -91,36 +87,28 @@ services:
         image: "driftphp/tiny-balancer"
         ports:
             - "${APISEARCH_SERVER_PORT}:8000"
-        networks: [apisearch]
-        entrypoint: ["php", "balancer", "8000", "apisearch.server_1:8000", "apisearch.server_2:8000", "apisearch.server_3:8000"]
+        networks: [apisearch_infra]
+        entrypoint: ["php", "balancer", "8000", "apisearch.server_1:8000", "apisearch.server_2:8000"]
 
     server_1:
         image: apisearchio/search-server:latest
         container_name: apisearch.server_1
-        networks: [apisearch]
+        networks: [apisearch_infra]
         command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
         volumes:
             - ./wait/wait-and-run.sh:/wait-and-run.sh
+            - ./marvel/feed.as:/marvel.as
         env_file:
             - ./.env
 
     server_2:
         image: apisearchio/search-server:latest
         container_name: apisearch.server_2
-        networks: [apisearch]
+        networks: [apisearch_infra]
         command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
         volumes:
             - ./wait/wait-and-run.sh:/wait-and-run.sh
-        env_file:
-            - ./.env
-
-    server_3:
-        image: apisearchio/search-server:latest
-        container_name: apisearch.server_3
-        networks: [apisearch]
-        command: ["sh", /wait-and-run.sh, /create-infrastructure.sh, /server-entrypoint.sh]
-        volumes:
-            - ./wait/wait-and-run.sh:/wait-and-run.sh
+            - ./marvel/feed.as:/marvel.as
         env_file:
             - ./.env
 
